@@ -1,0 +1,13 @@
+# Local overrides (may contain personal preferences or secrets)
+.claude/settings.local.json
+
+# OS
+.DS_Store
+
+# Node
+node_modules/
+
+# Editor
+*.swp
+*.swo
+*~

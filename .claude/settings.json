@@ -1,0 +1,44 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": ".claude/hooks/post-edit-format.sh $CLAUDE_FILE_PATH",
+        "description": "Auto-format files after edit or write"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "command": ".claude/hooks/pre-commit-lint.sh",
+        "description": "Guard against dangerous commands"
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"'",
+        "description": "macOS notification when Claude needs attention"
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(git describe*)",
+      "Bash(git ls-files*)",
+      "Bash(gh pr *)",
+      "Bash(npm test*)",
+      "Bash(npx prettier*)",
+      "Bash(npx eslint*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
+    ]
+  }
+}
