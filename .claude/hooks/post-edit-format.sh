@@ -3,9 +3,10 @@ set -euo pipefail
 
 # Auto-format files after Claude edits or writes them.
 # This hook runs on PostToolUse for Edit and Write tool calls.
-# The file path is passed as the first argument.
+# The file path is read from the JSON input on stdin.
 
-file_path="${1:-}"
+input=$(cat)
+file_path=$(echo "$input" | jq -r '.tool_input.file_path // empty' 2>/dev/null || true)
 
 if [[ -z "$file_path" || ! -f "$file_path" ]]; then
   exit 0

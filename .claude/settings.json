@@ -3,22 +3,35 @@
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
-        "command": ".claude/hooks/post-edit-format.sh $CLAUDE_FILE_PATH",
-        "description": "Auto-format files after edit or write"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-edit-format.sh",
+            "statusMessage": "Auto-formatting edited file"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
         "matcher": "Bash",
-        "command": ".claude/hooks/pre-commit-lint.sh",
-        "description": "Guard against dangerous commands"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pre-commit-lint.sh",
+            "statusMessage": "Checking for dangerous commands"
+          }
+        ]
       }
     ],
     "Notification": [
       {
-        "matcher": "",
-        "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"'",
-        "description": "macOS notification when Claude needs attention"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "osascript -e 'display notification \"Claude needs your attention\" with title \"Claude Code\"'"
+          }
+        ]
       }
     ]
   },
