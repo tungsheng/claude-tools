@@ -1,80 +1,45 @@
 # Claude Tools
 
-A ready-to-use collection of agents, skills, hooks, and settings for [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
+Agents, skills, hooks, and settings for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) — ready to install.
 
-## What's Inside
+## Prerequisites
 
-```
-.claude/
-├── agents/        # Specialized sub-agents
-├── skills/        # Slash commands
-├── hooks/         # Lifecycle scripts
-└── settings.json  # Permissions & hook config
-```
+- [`jq`](https://jqlang.github.io/jq/) — required by hooks
+- [`gh`](https://cli.github.com/) — required by `/pr`
 
-### Agents
-
-| Agent | Description |
-|-------|-------------|
-| **Team Lead** | Orchestrates tasks, breaks down work, delegates to other agents |
-| **Senior Coder** | Implements features, refactors code, writes production-quality software |
-| **UX Designer** | Reviews UI/UX, accessibility, error messages, developer experience |
-| **Quality Engineer** | Writes tests, validates behavior, checks CI, reviews edge cases |
-
-### Skills (Slash Commands)
-
-| Command | Description |
-|---------|-------------|
-| `/commit` | Analyze staged changes and create a conventional commit |
-| `/release` | Bump version, update changelog, create git tag |
-| `/explain` | Explain code with ASCII diagrams and analogies |
-| `/pr` | Create a pull request with summary and test plan |
-
-### Hooks
-
-| Hook | Trigger | Description |
-|------|---------|-------------|
-| `post-edit-format.sh` | After Edit/Write | Auto-formats files using the appropriate formatter |
-| `pre-commit-lint.sh` | Before Bash | Guards against dangerous shell commands |
-
-## Quick Start
-
-### Option 1: Install globally
+## Install
 
 ```bash
+# Global — agents + skills available in every project
 ./install.sh --global
-```
 
-This symlinks agents and skills into `~/.claude/` so they're available in **every project**. Hooks and settings are project-level only and not included in a global install.
-
-### Option 2: Install into a project
-
-```bash
+# Project — full .claude/ directory (includes hooks + settings)
 ./install.sh /path/to/your/project
+
+# Use --force to auto-backup existing .claude/ paths
+./install.sh --force --global
 ```
 
-This symlinks the full `.claude/` directory into the project, including hooks and settings.
+## What's Included
 
-### Option 3: Copy directly
+| Type | Items |
+|------|-------|
+| **Agents** | team-lead, senior-coder, ux-designer, quality-engineer |
+| **Skills** | `/commit`, `/release`, `/explain`, `/pr`, `/security-audit` |
+| **Hooks** | post-edit-format, bash-safety-check, notify |
 
-```bash
-cp -r .claude/ /path/to/your/project/.claude/
-```
-
-### Then use it
+## Usage
 
 ```bash
 cd /path/to/your/project
-claude
+claude                    # agents, skills, and hooks are auto-detected
 ```
 
-The agents, skills, and hooks are automatically available.
+## Docs
 
-## Customizing
-
-- **Add an agent** — create a markdown file in `.claude/agents/` with YAML frontmatter (`name`, `model`, `description`, `tools`)
-- **Add a skill** — create a `SKILL.md` in `.claude/skills/<name>/` with `user-invocable: true` in the frontmatter
-- **Add a hook** — add a script to `.claude/hooks/`, make it executable, and register it in `settings.json`
+- [Agents](docs/agents.md) — specialized sub-agents and how to add your own
+- [Skills](docs/skills.md) — slash commands and how to create new ones
+- [Hooks](docs/hooks.md) — lifecycle scripts and how to register them
 
 ## License
 

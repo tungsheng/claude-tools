@@ -4,40 +4,30 @@ A curated collection of Claude Code agents, skills, hooks, and settings — read
 
 ## Repository Structure
 
-- `.claude/agents/` — Agent prompt files (team-lead, senior-coder, ux-designer, quality-engineer)
-- `.claude/skills/` — Skill definitions invoked via slash commands (/commit, /release, /explain, /pr)
+- `.claude/agents/` — Agent prompt files
+- `.claude/skills/` — Skill definitions (slash commands)
 - `.claude/hooks/` — Shell scripts triggered by Claude Code lifecycle events
 - `.claude/settings.json` — Hooks configuration and permission allowlists
 - `install.sh` — Symlink helper to install into a target project
+- `docs/` — Detailed docs for agents, skills, and hooks
+
+## Prerequisites
+
+- `jq` — required by hooks (bash-safety-check.sh blocks all Bash if missing)
+- `gh` CLI — required by the `/pr` skill
 
 ## Conventions
 
 - Agent files use YAML frontmatter for metadata followed by a system prompt body
+- Omit the `tools` field in agent frontmatter to grant all tools; list specific tools to restrict
 - Skill files use YAML frontmatter with `user-invocable: true` and instruction body
-- Hook scripts must be executable (`chmod +x`)
+- Hook scripts must be executable (`chmod +x`) and live in `.claude/hooks/`
 - All shell scripts use `#!/usr/bin/env bash` and `set -euo pipefail`
+- Hooks read JSON input via stdin — use `printf '%s' "$input" | jq` (not `echo`)
+- Hook exit codes: 0 = allow, 2 = block (PreToolUse only)
 
-## Usage
+## Testing changes
 
-### Install globally
-
-```bash
-./install.sh --global
-```
-
-This symlinks agents and skills into `~/.claude/` so they're available in every project. Hooks and settings are project-level only and not included.
-
-### Install into a project
-
-```bash
-./install.sh /path/to/your/project
-```
-
-This symlinks the full `.claude/` directory into the target project so agents, skills, hooks, and settings are available when running `claude` there.
-
-### Available slash commands
-
-- `/commit` — Analyze staged changes and create a conventional commit
-- `/release` — Bump version, update changelog, create git tag
-- `/explain` — Explain code with diagrams and analogies
-- `/pr` — Create a pull request with summary and test plan
+- `./install.sh --global` — test global install (agents + skills)
+- `mkdir -p /tmp/test-project && ./install.sh /tmp/test-project` — test project install (full .claude/)
+- `./install.sh --force --global` — auto-backup existing paths

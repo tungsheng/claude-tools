@@ -34,14 +34,16 @@ Automate the release process: version bump, changelog update, git tag, and optio
    - Group entries under: Added, Changed, Fixed, Removed, Breaking
    - Include commit summaries with attribution
 
-6. **Create the release commit and tag**:
+6. **Present the release plan** to the user for confirmation — show the new version, changelog entries, and files that will be committed.
+
+7. **Create the release commit and tag** — only stage the files you changed (manifest + CHANGELOG.md):
    ```bash
-   git add -A
+   git add package.json CHANGELOG.md   # adjust to whichever manifest was updated
    git commit -m "chore(release): v<version>"
    git tag -a v<version> -m "Release v<version>"
    ```
 
-7. **Report next steps** — Remind the user to:
+8. **Report next steps** — Remind the user to:
    - Push the commit and tag: `git push && git push --tags`
    - Publish if applicable (`npm publish`, `cargo publish`, etc.)
 

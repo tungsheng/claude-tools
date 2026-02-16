@@ -12,9 +12,9 @@ Create a well-structured pull request from the current branch.
 
 1. **Gather context** by running these commands:
    - `git branch --show-current` — Current branch name
-   - `git log --oneline main..HEAD` or `git log --oneline master..HEAD` — Commits on this branch
-   - `git diff main..HEAD --stat` or `git diff master..HEAD --stat` — Files changed
-   - `git diff main..HEAD` or `git diff master..HEAD` — Full diff
+   - `git log --oneline main...HEAD` or `git log --oneline master...HEAD` — Commits on this branch
+   - `git diff main...HEAD --stat` or `git diff master...HEAD --stat` — Files changed
+   - `git diff main...HEAD` or `git diff master...HEAD` — Full diff (triple-dot shows only branch changes)
    - `git status` — Any uncommitted changes
 
 2. **Detect the base branch** — Use `main` if it exists, otherwise `master`. If neither exists, ask the user.
@@ -42,9 +42,12 @@ Create a well-structured pull request from the current branch.
 
 6. **Present the PR** to the user for review before creating it.
 
-7. **Create the PR** using the `gh` CLI:
+7. **Create the PR** using the `gh` CLI. Use a HEREDOC for the body to avoid escaping issues:
    ```bash
-   gh pr create --title "<title>" --body "<body>"
+   gh pr create --title "<title>" --body "$(cat <<'EOF'
+   <body>
+   EOF
+   )"
    ```
 
 8. **Show the result** — Display the PR URL.
@@ -52,5 +55,5 @@ Create a well-structured pull request from the current branch.
 ## Dynamic Context
 
 !`git branch --show-current 2>/dev/null || echo "Not on a branch"`
-!`git log --oneline main..HEAD 2>/dev/null || git log --oneline master..HEAD 2>/dev/null || echo "No commits ahead of base"`
-!`git diff --stat main..HEAD 2>/dev/null || git diff --stat master..HEAD 2>/dev/null || echo "No diff from base"`
+!`git log --oneline main...HEAD 2>/dev/null || git log --oneline master...HEAD 2>/dev/null || echo "No commits ahead of base"`
+!`git diff --stat main...HEAD 2>/dev/null || git diff --stat master...HEAD 2>/dev/null || echo "No diff from base"`

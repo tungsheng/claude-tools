@@ -44,7 +44,7 @@ Structure every explanation in three layers:
 
 5. **Key concepts** — List any patterns, algorithms, or concepts the reader should know:
    - Name the pattern (e.g., "Observer Pattern", "Debouncing")
-   - Link to the concept, don't over-explain it
+   - Briefly describe the concept; don't over-explain it
 
 ### Guidelines
 
@@ -53,6 +53,3 @@ Structure every explanation in three layers:
 - Highlight potential gotchas, edge cases, or non-obvious behavior
 - If the code has bugs or anti-patterns, mention them tactfully
 
-## Dynamic Context
-
-!`git ls-files --others --cached --exclude-standard 2>/dev/null | head -20 || echo "Not a git repo"`
