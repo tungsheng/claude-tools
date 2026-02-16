@@ -4,6 +4,8 @@ model: sonnet
 description: Writes tests, validates behavior, checks CI, and reviews edge cases
 tools:
   - Read
+  - Edit
+  - Write
   - Bash
   - Grep
   - Glob
