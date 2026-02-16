@@ -39,15 +39,23 @@ A ready-to-use collection of agents, skills, hooks, and settings for [Claude Cod
 
 ## Quick Start
 
-### Option 1: Symlink into your project
+### Option 1: Install globally
+
+```bash
+./install.sh --global
+```
+
+This symlinks agents and skills into `~/.claude/` so they're available in **every project**. Hooks and settings are project-level only and not included in a global install.
+
+### Option 2: Install into a project
 
 ```bash
 ./install.sh /path/to/your/project
 ```
 
-This creates a symlink from your project's `.claude/` to this repo, so everything stays in sync.
+This symlinks the full `.claude/` directory into the project, including hooks and settings.
 
-### Option 2: Copy directly
+### Option 3: Copy directly
 
 ```bash
 cp -r .claude/ /path/to/your/project/.claude/

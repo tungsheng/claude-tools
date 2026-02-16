@@ -1,23 +1,68 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install claude-tools into a target project by symlinking the .claude/ directory.
+# Install claude-tools into a target project or globally.
 #
 # Usage:
-#   ./install.sh /path/to/your/project
+#   ./install.sh /path/to/your/project   # project-level install
+#   ./install.sh --global                 # global install (~/.claude)
 #
-# This creates a symlink at <project>/.claude -> <this-repo>/.claude
-# so that agents, skills, hooks, and settings are available when running
-# `claude` in the target project.
+# Project install symlinks the entire .claude/ directory so that agents,
+# skills, hooks, and settings are all available in the target project.
+#
+# Global install symlinks only agents and skills into ~/.claude/ since
+# hooks and settings are not supported at the global level.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/.claude"
 
-if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <target-project-directory>"
+usage() {
+  echo "Usage: $0 [--global | <target-project-directory>]"
   echo ""
-  echo "Symlinks the .claude/ directory into the target project so that"
-  echo "agents, skills, hooks, and settings are available there."
+  echo "  <target-project-directory>  Symlink the full .claude/ directory into a project"
+  echo "  --global                    Symlink agents and skills into ~/.claude/"
+  echo ""
+  echo "Global install makes skills and agents available in all projects."
+  echo "Hooks and settings are only supported at the project level."
+}
+
+symlink() {
+  local src="$1" dst="$2" label="$3"
+
+  if [[ -L "$dst" ]]; then
+    echo "Removing existing symlink at $dst"
+    rm "$dst"
+  elif [[ -e "$dst" ]]; then
+    echo "Error: $dst already exists. Back it up or remove it first."
+    exit 1
+  fi
+
+  ln -s "$src" "$dst"
+  echo "  $label -> $src"
+}
+
+# --- Global install ---
+if [[ "${1:-}" == "--global" ]]; then
+  GLOBAL_DIR="$HOME/.claude"
+  mkdir -p "$GLOBAL_DIR"
+
+  echo "Installing globally into $GLOBAL_DIR"
+  symlink "$SOURCE_DIR/agents" "$GLOBAL_DIR/agents" "agents"
+  symlink "$SOURCE_DIR/skills" "$GLOBAL_DIR/skills" "skills"
+
+  echo ""
+  echo "Available globally:"
+  echo "  Agents:  team-lead, senior-coder, ux-designer, quality-engineer"
+  echo "  Skills:  /commit, /release, /explain, /pr"
+  echo ""
+  echo "Note: Hooks and settings must be installed per-project."
+  echo "Run '$0 /path/to/project' to install hooks into a specific project."
+  exit 0
+fi
+
+# --- Project install ---
+if [[ $# -lt 1 ]]; then
+  usage
   exit 1
 fi
 
@@ -45,4 +90,4 @@ echo ""
 echo "Available in the target project:"
 echo "  Agents:  team-lead, senior-coder, ux-designer, quality-engineer"
 echo "  Skills:  /commit, /release, /explain, /pr"
-echo "  Hooks:   post-edit-format, pre-commit-lint, notification"
+echo "  Hooks:   post-edit-format, pre-commit-lint"

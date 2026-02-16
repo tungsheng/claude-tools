@@ -19,13 +19,21 @@ A curated collection of Claude Code agents, skills, hooks, and settings — read
 
 ## Usage
 
+### Install globally
+
+```bash
+./install.sh --global
+```
+
+This symlinks agents and skills into `~/.claude/` so they're available in every project. Hooks and settings are project-level only and not included.
+
 ### Install into a project
 
 ```bash
 ./install.sh /path/to/your/project
 ```
 
-This symlinks the `.claude/` directory into the target project so agents, skills, and hooks are available when running `claude` there.
+This symlinks the full `.claude/` directory into the target project so agents, skills, hooks, and settings are available when running `claude` there.
 
 ### Available slash commands
 
