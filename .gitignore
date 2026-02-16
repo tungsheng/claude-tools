@@ -1,5 +1,11 @@
 # Local overrides (may contain personal preferences or secrets)
 .claude/settings.local.json
 
+# Secrets
+*.env
+*.env.*
+*.pem
+*.key
+
 # OS
 .DS_Store

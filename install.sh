@@ -36,7 +36,7 @@ symlink() {
     rm "$dst"
   elif [[ -e "$dst" ]]; then
     if [[ "$FORCE" == true ]]; then
-      local backup="${dst}.bak"
+      local backup="${dst}.bak.$(date +%s)"
       echo "Backing up $dst -> $backup"
       mv "$dst" "$backup"
     else
@@ -69,9 +69,6 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
   exit 1
 fi
 
-# Ensure hook scripts are executable
-chmod +x "$SOURCE_DIR"/hooks/*.sh 2>/dev/null || true
-
 # --- Global install ---
 if [[ "${1:-}" == "--global" ]]; then
   GLOBAL_DIR="$HOME/.claude"
@@ -102,6 +99,9 @@ if [[ ! -d "$TARGET_DIR" ]]; then
   exit 1
 fi
 
+# Ensure hook scripts are executable
+chmod +x "$SOURCE_DIR"/hooks/*.sh 2>/dev/null || true
+
 TARGET_CLAUDE="$TARGET_DIR/.claude"
 
 if [[ -L "$TARGET_CLAUDE" ]]; then
@@ -109,7 +109,7 @@ if [[ -L "$TARGET_CLAUDE" ]]; then
   rm "$TARGET_CLAUDE"
 elif [[ -d "$TARGET_CLAUDE" ]]; then
   if [[ "$FORCE" == true ]]; then
-    backup="${TARGET_CLAUDE}.bak"
+    backup="${TARGET_CLAUDE}.bak.$(date +%s)"
     echo "Backing up $TARGET_CLAUDE -> $backup"
     mv "$TARGET_CLAUDE" "$backup"
   else
