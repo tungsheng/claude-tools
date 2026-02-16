@@ -8,7 +8,7 @@ A curated collection of Claude Code agents, skills, hooks, and settings — read
 - `.claude/skills/` — Skill definitions (slash commands)
 - `.claude/hooks/` — Shell scripts triggered by Claude Code lifecycle events
 - `.claude/settings.json` — Hooks configuration and permission allowlists
-- `install.sh` — Symlink helper to install into a target project
+- `install.sh` — Symlink installer with `--global` and `--uninstall`
 - `docs/` — Detailed docs for agents, skills, and hooks
 
 ## Prerequisites
@@ -28,6 +28,7 @@ A curated collection of Claude Code agents, skills, hooks, and settings — read
 
 ## Testing changes
 
-- `./install.sh --global` — test global install (agents + skills)
-- `mkdir -p /tmp/test-project && ./install.sh /tmp/test-project` — test project install (full .claude/)
-- `./install.sh --force --global` — auto-backup existing paths
+- `./install.sh --global` — install globally (agents + skills)
+- `mkdir -p /tmp/test-project && ./install.sh /tmp/test-project` — install into project
+- `./install.sh --uninstall --global` — remove global symlinks
+- `./install.sh --uninstall /tmp/test-project` — remove project symlink

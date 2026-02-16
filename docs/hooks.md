@@ -19,7 +19,7 @@ Hooks are shell scripts that run automatically during Claude Code lifecycle even
 
 - **Trigger:** `PreToolUse` for `Bash`
 - **Purpose:** Blocks dangerous shell commands before execution.
-- **Blocked patterns:** `rm -rf /`, `rm -rf ~`, `rm -rf $HOME`, `git push --force`, `git push -f`, `git reset --hard`, `git clean -fd` (any flag order), `chmod 777`, `> /dev/sda`, `mkfs.*`, `dd if=`, `curl|bash`, `wget|sh`, fork bombs
+- **Blocked patterns:** `rm -rf /`, `rm -rf ~`, `rm -rf $HOME`, `git push --force`, `git push -f`, `git reset --hard`, `git clean -fd` (any flag order), `chmod [-R] 777`, `> /dev/sd*`, `mkfs.*`, `dd if=`, `curl|bash`, `wget|sh`, fork bombs
 - **Behavior:** Exits with code 2 to block the command. This is a defense-in-depth measure — it catches common destructive patterns but is not a security boundary against intentional circumvention.
 
 ### notify.sh

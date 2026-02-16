@@ -15,9 +15,15 @@ Agents, skills, hooks, and settings for [Claude Code](https://docs.anthropic.com
 
 # Project — full .claude/ directory (includes hooks + settings)
 ./install.sh /path/to/your/project
+```
 
-# Use --force to auto-backup existing .claude/ paths
-./install.sh --force --global
+Existing non-symlink paths are automatically backed up to `*.bak.*`.
+
+## Uninstall
+
+```bash
+./install.sh --uninstall --global
+./install.sh --uninstall /path/to/your/project
 ```
 
 ## What's Included

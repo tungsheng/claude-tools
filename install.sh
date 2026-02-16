@@ -1,92 +1,139 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Install claude-tools into a target project or globally.
+# Symlink claude-tools into a target project or globally into ~/.claude.
 #
 # Usage:
-#   ./install.sh /path/to/your/project   # project-level install
-#   ./install.sh --global                 # global install (~/.claude)
-#
-# Project install symlinks the entire .claude/ directory so that agents,
-# skills, hooks, and settings are all available in the target project.
-#
-# Global install symlinks only agents and skills into ~/.claude/ since
-# hooks and settings are not supported at the global level.
+#   ./install.sh --global                 # agents + skills, all projects
+#   ./install.sh /path/to/project         # full .claude/ into one project
+#   ./install.sh --uninstall --global     # remove global symlinks
+#   ./install.sh --uninstall /path/to/project  # remove project symlink
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SOURCE_DIR="$SCRIPT_DIR/.claude"
-FORCE=false
 
-usage() {
-  echo "Usage: $0 [--force] [--global | <target-project-directory>]"
-  echo ""
-  echo "  --global                    Symlink agents and skills into ~/.claude/"
-  echo "  --force                     Back up existing paths before symlinking"
-  echo "  <target-project-directory>  Symlink the full .claude/ directory into a project"
-  echo ""
-  echo "Global install makes skills and agents available in all projects."
-  echo "Hooks and settings are only supported at the project level."
+UNINSTALL=false
+
+if [[ -t 1 ]]; then
+  GREEN='\033[32m' RED='\033[31m' YELLOW='\033[33m' CYAN='\033[36m' DIM='\033[2m' RESET='\033[0m'
+else
+  GREEN='' RED='' YELLOW='' CYAN='' DIM='' RESET=''
+fi
+
+# Logging helpers.
+ok()    { echo -e "${GREEN}✓${RESET} $*"; }
+err()   { echo -e "${RED}✗${RESET} $*"; }
+warn()  { echo -e "  ${YELLOW}↻${RESET} $*"; }
+item()  { echo -e "  ${CYAN}‣${RESET} $*"; }
+muted() { echo -e "${DIM}$1${RESET} ${*:2}"; }
+
+pretty() {
+  local p="$1" h="$HOME"
+  echo "${p/$h/\~}"
 }
 
+usage() {
+  echo "Usage: $0 [options] [--global | <project-directory>]"
+  echo ""
+  echo "Options:"
+  echo "  --uninstall   Remove previously installed symlinks"
+  echo "  --help, -h    Show this help"
+  echo ""
+  echo "Modes:"
+  echo "  --global              Agents + skills into ~/.claude/"
+  echo "  <project-directory>   Full .claude/ into the project"
+  echo ""
+  echo "Global install: agents and skills only (hooks are project-level)."
+}
+
+# Create a symlink, handling existing targets.
+# Sets SYMLINK_ACTION ("created", "replaced", "forced") for caller output.
 symlink() {
-  local src="$1" dst="$2" label="$3"
+  local src="$1" dst="$2"
+  SYMLINK_ACTION="created"
 
   if [[ -L "$dst" ]]; then
-    echo "Replacing existing symlink at $dst"
     rm "$dst"
+    SYMLINK_ACTION="replaced"
   elif [[ -e "$dst" ]]; then
-    if [[ "$FORCE" == true ]]; then
-      local backup="${dst}.bak.$(date +%s)"
-      echo "Backing up $dst -> $backup"
-      mv "$dst" "$backup"
-    else
-      echo "Error: $dst already exists."
-      echo "  Use --force to auto-backup, or remove it manually."
-      exit 1
-    fi
+    local backup="${dst}.bak.$(date +%s)"
+    mv "$dst" "$backup"
+    SYMLINK_ACTION="forced"
+    SYMLINK_BACKUP="$(basename "$backup")"
   fi
 
   ln -s "$src" "$dst"
-  echo "  $label -> $src"
 }
 
-# --- Parse flags ---
+# Remove a symlink only if it points back to our source directory.
+remove_symlink() {
+  local dst="$1"
+
+  if [[ ! -L "$dst" ]]; then
+    return 1
+  fi
+
+  local target
+  target="$(readlink "$dst")"
+  if [[ "$target" == "$SOURCE_DIR"* ]]; then
+    rm "$dst"
+    return 0
+  else
+    muted "⊘" "Skipped $(pretty "$dst") (points elsewhere)"
+    return 1
+  fi
+}
+
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --force)  FORCE=true; shift ;;
-    --global) POSITIONAL+=("$1"); shift ;;
-    --help|-h) usage; exit 0 ;;
-    --*)      echo "Unknown flag: $1"; usage; exit 1 ;;
-    *)        POSITIONAL+=("$1"); shift ;;
+    --uninstall) UNINSTALL=true; shift ;;
+    --global)    POSITIONAL+=("$1"); shift ;;
+    --help|-h)   usage; exit 0 ;;
+    --*)         err "Unknown option: $1"; usage; exit 1 ;;
+    *)           POSITIONAL+=("$1"); shift ;;
   esac
 done
 set -- "${POSITIONAL[@]+"${POSITIONAL[@]}"}"
 
-# Validate source directory exists
 if [[ ! -d "$SOURCE_DIR" ]]; then
-  echo "Error: Source directory not found: $SOURCE_DIR"
+  err "Source not found: $(pretty "$SOURCE_DIR")"
   exit 1
 fi
 
-# --- Global install ---
+# Global: symlink agents/ and skills/ into ~/.claude/
 if [[ "${1:-}" == "--global" ]]; then
   GLOBAL_DIR="$HOME/.claude"
+
+  if [[ "$UNINSTALL" == true ]]; then
+    removed=false
+    remove_symlink "$GLOBAL_DIR/agents" && removed=true
+    remove_symlink "$GLOBAL_DIR/skills" && removed=true
+    if [[ "$removed" == true ]]; then
+      ok "Uninstalled from $(pretty "$GLOBAL_DIR")"
+      item "Removed agents/ and skills/ symlinks"
+    else
+      muted "⊘" "Nothing to uninstall in $(pretty "$GLOBAL_DIR")"
+    fi
+    exit 0
+  fi
+
   mkdir -p "$GLOBAL_DIR"
+  symlink "$SOURCE_DIR/agents" "$GLOBAL_DIR/agents"
+  was_replaced=$SYMLINK_ACTION
+  symlink "$SOURCE_DIR/skills" "$GLOBAL_DIR/skills"
 
-  echo "Installing globally into $GLOBAL_DIR"
-  symlink "$SOURCE_DIR/agents" "$GLOBAL_DIR/agents" "agents"
-  symlink "$SOURCE_DIR/skills" "$GLOBAL_DIR/skills" "skills"
-
+  ok "Installed into $(pretty "$GLOBAL_DIR")"
+  [[ "$was_replaced" == "replaced" ]] && warn "Replaced existing symlinks"
+  item "agents   team-lead, senior-coder, ux-designer, quality-engineer"
+  item "skills   /commit, /release, /explain, /pr, /security-audit"
   echo ""
-  echo "Done. Agents and skills are now available in all projects."
-  echo ""
-  echo "Note: Hooks and settings are project-level only."
-  echo "Run '$0 /path/to/project' to install them into a specific project."
+  echo "  To add hooks and settings, install into a project:"
+  echo -e "  ${DIM}→${RESET} $0 /path/to/project"
   exit 0
 fi
 
-# --- Project install ---
+# Project: symlink full .claude/ directory
 if [[ $# -lt 1 ]]; then
   usage
   exit 1
@@ -95,31 +142,30 @@ fi
 TARGET_DIR="$1"
 
 if [[ ! -d "$TARGET_DIR" ]]; then
-  echo "Error: Target directory does not exist: $TARGET_DIR"
+  err "Directory not found: $TARGET_DIR"
   exit 1
 fi
 
-# Ensure hook scripts are executable
-chmod +x "$SOURCE_DIR"/hooks/*.sh 2>/dev/null || true
-
 TARGET_CLAUDE="$TARGET_DIR/.claude"
 
-if [[ -L "$TARGET_CLAUDE" ]]; then
-  echo "Replacing existing symlink at $TARGET_CLAUDE"
-  rm "$TARGET_CLAUDE"
-elif [[ -d "$TARGET_CLAUDE" ]]; then
-  if [[ "$FORCE" == true ]]; then
-    backup="${TARGET_CLAUDE}.bak.$(date +%s)"
-    echo "Backing up $TARGET_CLAUDE -> $backup"
-    mv "$TARGET_CLAUDE" "$backup"
+if [[ "$UNINSTALL" == true ]]; then
+  if remove_symlink "$TARGET_CLAUDE"; then
+    ok "Uninstalled from $TARGET_DIR"
+    item "Removed .claude/ symlink"
   else
-    echo "Error: $TARGET_CLAUDE already exists as a directory."
-    echo "  Use --force to auto-backup, or remove it manually."
-    exit 1
+    muted "⊘" "Nothing to uninstall in $TARGET_DIR"
   fi
+  exit 0
 fi
 
-ln -s "$SOURCE_DIR" "$TARGET_CLAUDE"
-echo "Installed: $TARGET_CLAUDE -> $SOURCE_DIR"
+chmod +x "$SOURCE_DIR"/hooks/*.sh 2>/dev/null || true
+symlink "$SOURCE_DIR" "$TARGET_CLAUDE"
+
+ok "Installed into $TARGET_DIR"
+[[ "$SYMLINK_ACTION" == "forced" ]] && warn "Backed up existing .claude/ → ${SYMLINK_BACKUP}"
+[[ "$SYMLINK_ACTION" == "replaced" ]] && warn "Replaced existing symlink"
+item "agents   team-lead, senior-coder, ux-designer, quality-engineer"
+item "skills   /commit, /release, /explain, /pr, /security-audit"
+item "hooks    post-edit-format, bash-safety-check, notify"
 echo ""
-echo "Run 'claude' in $TARGET_DIR to get started."
+echo "  Run 'claude' in $TARGET_DIR to get started."
