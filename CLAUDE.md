@@ -13,7 +13,7 @@ A curated collection of Claude Code agents, skills, hooks, and settings — read
 
 ## Prerequisites
 
-- `jq` — required by hooks (bash-safety-check.sh blocks all Bash if missing)
+- `jq` — required by bash-safety-check hook (blocks all Bash commands if missing)
 - `gh` CLI — required by the `/pr` skill
 
 ## Conventions

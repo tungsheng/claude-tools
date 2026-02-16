@@ -120,11 +120,14 @@ if [[ "${1:-}" == "--global" ]]; then
 
   mkdir -p "$GLOBAL_DIR"
   symlink "$SOURCE_DIR/agents" "$GLOBAL_DIR/agents"
-  was_replaced=$SYMLINK_ACTION
+  action_agents=$SYMLINK_ACTION backup_agents=${SYMLINK_BACKUP:-}
   symlink "$SOURCE_DIR/skills" "$GLOBAL_DIR/skills"
+  action_skills=$SYMLINK_ACTION backup_skills=${SYMLINK_BACKUP:-}
 
   ok "Installed into $(pretty "$GLOBAL_DIR")"
-  [[ "$was_replaced" == "replaced" ]] && warn "Replaced existing symlinks"
+  [[ "$action_agents" == "forced" ]] && warn "Backed up existing agents/ → $backup_agents"
+  [[ "$action_skills" == "forced" ]] && warn "Backed up existing skills/ → $backup_skills"
+  [[ "$action_agents" == "replaced" || "$action_skills" == "replaced" ]] && warn "Replaced existing symlinks"
   item "agents   team-lead, senior-coder, ux-designer, quality-engineer"
   item "skills   /commit, /release, /explain, /pr, /security-audit"
   echo ""
